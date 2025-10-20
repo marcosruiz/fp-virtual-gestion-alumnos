@@ -25,6 +25,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+from pathlib import Path
 
 
 def main():
@@ -221,7 +222,16 @@ def main():
                 # Le envío email avisándolede su cambio de usuario 
                 usuario = alumnoSIGAD.getDocumento()
                 oldUsuario = alumnoMoodle['username']
-                mensaje = '''Hola,<br/><br/>su cuenta en https://{subdomain}.fpvirtualaragon.es/ se ha actualizado.<br/><br/>Su nuevo usuario es: <b>{usuario}</b> en lugar de {oldUsuario}.<br/>Su contraseña NO ha sido modificada.<br/><br/>Recuerde que puede recuperar su contraseña en cualquier momento a través de https://{subdomain}.fpvirtualaragon.es/login/forgot_password.php<br/>No responda a esta cuenta de correo electrónico pues se trata de una cuenta automatizada no atendida. En caso de cualquier problema consulte con su coordinador/a de ciclo o acuda a la sección de <a href="https://{subdomain}.fpvirtualaragon.es/soporte/">ayuda/incidencias</a>.<br/><br/><br/>Saludos<br/><br/>------<br/>FP virtual Aragón{pie_email_rrss}'''.format(subdomain = SUBDOMAIN, usuario = usuario, oldUsuario = oldUsuario, pie_email_rrss = pie_email_rrss )
+
+                plantilla_path = Path("/var/fp-distancia-gestion-usuarios-automatica/templates/nuevoUsuario.html")
+                plantilla = plantilla_path.read_text(encoding="utf-8")
+
+                mensaje = plantilla.format(
+                    subdomain = SUBDOMAIN, 
+                    usuario = usuario, 
+                    oldUsuario = oldUsuario, 
+                    pie_email_rrss = pie_email_rrss,
+                )
                 
                 destinatario = "gestion@fpvirtualaragon.es"
                 if SUBDOMAIN == "www":
@@ -466,9 +476,20 @@ def main():
             matriculado_en_texto = "<br/>".join( map(return_text_for_html, matriculado_en) )
             nombre = return_text_for_html( alumno.getNombre() )
             apellidos = return_text_for_html( alumno.getApellidos() )
+
+            plantilla_path = Path("/var/fp-distancia-gestion-usuarios-automatica/templates/nuevoUsuario.html")
+            plantilla = plantilla_path.read_text(encoding="utf-8")
             
-            mensaje = '''Bienvenido/a {nombre} {apellidos},<br/><br/>su cuenta se ha creado en https://{subdomain}.fpvirtualaragon.es/ y sus datos de acceso son los siguientes:<br/><br/>usuario: <b>{usuario}</b><br/>contraseña (es recomendable que la cambie): <b>{contrasena}</b><br><br/>También se le creará la cuenta <b>{email}</b> con contraseña (deberá cambiarla al acceder) <b>{contrasena}</b><br> Esta cuenta de correo es la que le dará acceso a las videoconferencias de la plataforma y también a la propia plataforma. <strong>La cuenta puede tardar hasta 72 horas lectivas en estar disponible</strong>.<br/><br/>Ha sido matriculado/a en:<br/>{matriculado_en_texto}<br/><br/>Puede recuperar su contraseña en cualquier momento a través de https://{subdomain}.fpvirtualaragon.es/login/forgot_password.php<br/>Dispone de un curso de ayuda dónde encontrar información sobre el uso de la plataforma en <a href="https://{subdomain}.fpvirtualaragon.es/course/view.php?id=2">https://{subdomain}.fpvirtualaragon.es/course/view.php?id=2</a><br/><br/>No responda a esta cuenta de correo electrónico pues se trata de una cuenta automatizada no atendida. En caso de cualquier problema consulte con su coordinador/a de ciclo o acuda a la sección de <a href="https://{subdomain}.fpvirtualaragon.es/soporte/">ayuda/incidencias</a>.<br/><br/><br/>Saludos<br/><br/>------<br/>FP virtual Aragón{pie_email_rrss}'''.format(nombre = nombre, apellidos = apellidos, subdomain = SUBDOMAIN, usuario = alumno.getDocumento().lower(), contrasena = password, matriculado_en_texto = matriculado_en_texto, pie_email_rrss = pie_email_rrss, email = alumno.getEmailDominio() )
-            
+            mensaje = plantilla.format(
+                nombre=nombre,
+                apellidos=apellidos,
+                subdomain=SUBDOMAIN,
+                usuario=alumno.getDocumento().lower(),
+                contrasena=password,
+                matriculado_en_texto=matriculado_en_texto,
+                pie_email_rrss=pie_email_rrss,
+                email=alumno.getEmailDominio(),
+            )
             
             destinatario = "gestion@fpvirtualaragon.es"
             if SUBDOMAIN == "www":
@@ -491,7 +512,17 @@ def main():
                 matriculado_en_texto = "<br/>".join( map(return_text_for_html, matriculado_en) )
                 nombre = return_text_for_html( alumno.getNombre() )
                 apellidos = return_text_for_html( alumno.getApellidos() )
-                mensaje = '''Hola {nombre} {apellidos},<br/><br/>a su cuenta en https://{subdomain}.fpvirtualaragon.es/ se le han añadido las siguientes matrículas:<br/><br/>{matriculado_en_texto}<br/><br/>Puede recuperar su contraseña en cualquier momento a través de https://{subdomain}.fpvirtualaragon.es/login/forgot_password.php<br/>No responda a esta cuenta de correo electrónico pues se trata de una cuenta automatizada no atendida. En caso de cualquier problema consulte con su coordinador/a de ciclo o acuda a la sección de <a href="https://{subdomain}.fpvirtualaragon.es/soporte/">ayuda/incidencias</a>.<br/><br/><br/>Saludos<br/><br/>------<br/>FP virtual Aragón{pie_email_rrss}'''.format(nombre = nombre, apellidos = apellidos, subdomain = SUBDOMAIN, matriculado_en_texto = matriculado_en_texto, pie_email_rrss = pie_email_rrss )
+
+                plantilla_path = Path("/var/fp-distancia-gestion-usuarios-automatica/templates/matriculasAnadidas.html")
+                plantilla = plantilla_path.read_text(encoding="utf-8")
+
+                mensaje = plantilla.format(
+                    nombre = nombre, 
+                    apellidos = apellidos, 
+                    subdomain = SUBDOMAIN, 
+                    matriculado_en_texto = matriculado_en_texto, 
+                    pie_email_rrss = pie_email_rrss,
+                )
 
                 destinatario = "gestion@fpvirtualaragon.es"
                 if SUBDOMAIN == "www":

@@ -603,24 +603,32 @@ def main():
     texto = texto + "\n"
     texto = texto + "\n".join( csv )
     
-    #
+    # Escribimos el fichero HTML con el informe
     print("Comenzamos con el fichero")
     filename = get_date_time_for_filename()
     print("filename: " + filename)
     full_filename = "/var/fp-distancia-gestion-usuarios-automatica/logs/" + filename + SUBDOMAIN + ".html"
     print("full_filename: " + full_filename)
     fichero = open(full_filename, "x")
-    print("fichero abierto")
+    print("fichero HTML abierto")
     fichero.write(texto)
-    print("fichero escrito")
+    print("fichero HTML escrito")
     fichero.close()
-    print("fichero cerrado")
+    print("fichero HTML cerrado")
+
+    # Escribimos el fichero CSV con los nuevos usuarios para google
+    filename_csv = "/var/fp-distancia-gestion-usuarios-automatica/csvs/" + filename + SUBDOMAIN + ".csv"
+    fichero_csv = open(filename_csv, "x")
+    fichero_csv.write(csv)
+    fichero_csv.close()
+    print("Fichero CSV escrito y cerrado: " + filename_csv)
+
     print("Printed immediately.")
-    time.sleep(10)
-    print("Printed after 10 seconds.")
+    time.sleep(5)
+    print("Printed after 5 seconds.")
     emails = REPORT_TO.split()
     for email in emails:
-        send_email_con_adjunto(email, "Informe automatizado gestión automática usuarios moodle", full_filename)
+        send_email_con_adjuntos(email, "Informe automatizado gestión automática usuarios moodle", [full_filename, fichero_csv] )
 
     #
     # End of main 
@@ -1303,53 +1311,62 @@ def is_alumno_matriculado_en_curso(moodle, id_alumno, id_curso):
     else:
         return True
 
-def send_email_con_adjunto(destinatario, asunto, filename):
-    print("send_email_con_adjunto(destinatario: '" + destinatario + "', filename: '"+filename+"')")
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import smtplib, ssl
+
+def send_email_con_adjuntos(destinatario, asunto, filenames):
     """
-    Al destinatario envía un email con el asunto y el fichero adjunto facilitado
+    Envía un correo con uno o varios ficheros adjuntos.
+    - destinatario: dirección del receptor
+    - asunto: asunto del correo
+    - filenames: lista de rutas a los ficheros adjuntos
     """
-    # https://www.codespeedy.com/send-email-with-file-attachment-in-python-with-smtp/
+    print(f"send_email_con_adjuntos(destinatario: '{destinatario}', archivos: {filenames})")
+
     enviado = False
-    port = SMTP_PORT  # For starttls
+    port = SMTP_PORT
     smtp_server = SMTP_HOSTS
     sender_email = SMTP_USER
     receiver_email = destinatario
     password = SMTP_PASSWORD
-    #texto = texto.encode('utf-8')
+
+    # Crear mensaje
     message = MIMEMultipart()
     message["From"] = sender_email
-    message['To'] = receiver_email
-    message['Subject'] = asunto
+    message["To"] = receiver_email
+    message["Subject"] = asunto
 
-    # message = f"Subject: {asunto}\nMIME-Version: 1.0\nContent-type: text/html\n\n{texto}".encode("utf-8")
-    attachment = open(filename,'rb')
+    # Adjuntar cada fichero
+    for filename in filenames:
+        try:
+            with open(filename, 'rb') as attachment:
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(attachment.read())
+                encoders.encode_base64(part)
+                # Solo el nombre del archivo, no la ruta completa
+                nombre_archivo = filename.split('/')[-1]  
+                part.add_header('Content-Disposition', f'attachment; filename="{nombre_archivo}"')
+                message.attach(part)
+        except Exception as e:
+            print(f"Error al adjuntar {filename}: {e}")
 
-    obj = MIMEBase('application','octet-stream')
-    obj.set_payload((attachment).read())
-    encoders.encode_base64(obj)
-    obj.add_header('Content-Disposition',"attachment; filename= "+filename)
-
-    message.attach(obj)
-
+    # Enviar mensaje
     my_message = message.as_string()
-
     context = ssl.create_default_context()
     with smtplib.SMTP(smtp_server, port) as server:
         try:
-            # server.ehlo()  # Can be omitted
             server.starttls(context=context)
-            # server.ehlo()  # Can be omitted
             server.login(sender_email, password)
             server.sendmail(sender_email, receiver_email, my_message)
             enviado = True
         except Exception as e:
-            if hasattr(e, 'message'):
-                print(e.message)
-            else:
-                print(e)
+            print(f"Error al enviar el correo: {e}")
         finally:
             server.quit()
     return enviado
+
 
 import smtplib, ssl
 from email.message import EmailMessage

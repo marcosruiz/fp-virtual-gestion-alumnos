@@ -26,7 +26,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from pathlib import Path
-
+import re
 
 def main():
     #
@@ -193,7 +193,7 @@ def main():
     
     ########################
     # De cada alumno que esté en moodle y no en sigad miro si en moodle hay alguien con ese email
-    # - si hay alguien con ese email considero que es la misma persona a la que han actualizado DNI/NIE/... en SIGAD y la actualizo
+    # - si hay alguien con ese email considero que es la misma persona a la que han actualizado de NIE a DNI en SIGAD y la actualizo
     # TODO: Utilizar este bucle como ejemplo para las que su nombre ha cambiado
     # - si no hay nadie con ese email considero que es una baja y lo suspendo
     ########################
@@ -206,8 +206,11 @@ def main():
         existe = False
         # comprobamos si existe por email
         for alumnoSIGAD in alumnos_sigad:
+            # Si el alumno ha pasado de un NIE a un DNI en SIGAD se lo actualizo el usuario en moodle
             if alumnoSIGAD.getEmailSigad() is not None \
                     and alumnoSIGAD.getDocumento() is not None \
+                    and es_nie_valido(alumnoMoodle['username']) \
+                    and es_dni_valido(alumnoSIGAD.getDocumento()) \
                     and alumnoMoodle['email_sigad'].lower() == alumnoSIGAD.getEmailSigad().lower(): 
                 existe = True
                 print("- Alumno a actualizar su login por coincidencia de email: '", repr(alumnoMoodle),"'", sep="" )
@@ -1681,6 +1684,24 @@ def crearShortnameCurso(codigo_centro, siglas_ciclo, id_materia):
     #
     # End of crearShortnameCurso
     #
+
+def es_nie_valido(nie: str) -> bool:
+    """
+    Devuelve True si el formato del string corresponde a un NIE válido.
+    Formato: Letra inicial X, Y o Z + 7 dígitos + letra final (A-Z)
+    """
+    nie = nie.upper().strip()
+    patron = r'^[XYZ]\d{7}[A-Z]$'
+    return bool(re.match(patron, nie))
+
+def es_dni_valido(dni: str) -> bool:
+    """
+    Devuelve True si el string tiene formato y letra de control válidos de un DNI español.
+    Formato válido: 8 dígitos seguidos de una letra mayúscula (sin espacios ni guiones).
+    """
+    dni = dni.upper().strip()
+    patron = r'^\d{8}[A-Z]$'
+    return bool(re.match(patron, dni))
 
 ###################################################
 ###################################################

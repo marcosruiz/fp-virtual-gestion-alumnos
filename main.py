@@ -39,7 +39,7 @@ def main():
     mensajes_email.append(SUBDOMAIN)
     mensajes_email.append("<b>RESUMEN DETALLADO</b>")
     # ids de users creados en deploy que no hay que borrar
-    usuarios_moodle_no_borrables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 3725, 3729, 3730, 7152, 7490, 7491, 11720] 
+    usuarios_moodle_no_borrables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 3725, 3729, 3730, 7152, 7490, 7491, 11720, 12270, 12272] 
     # 
     moodle = get_moodle(SUBDOMAIN)[0]
     alumnos_sigad = []
@@ -77,7 +77,7 @@ def main():
 
     procesa_desde_fichero = False # Procesa desde fichero en lugar del ws
     if procesa_desde_fichero:
-        with open(PATH + "/jsons/20250925_01.json", "r", encoding="utf-8") as f:
+        with open(PATH + "jsons/20250925_01.json", "r", encoding="utf-8") as f:
             y = json.load(f)
         if y is not None:
             codigo=y["codigo"]
@@ -96,7 +96,7 @@ def main():
             mensaje=y["mensaje"]
             idSolicitud=y["idSolicitud"]
             print("Código: " , codigo, ", Mensaje: ", mensaje, "idSolicitud: ", idSolicitud)
-            guarda_fichero(get_date_time() + "." + SUBDOMAIN + ".ws1.log", str(resp_data) )
+            guarda_fichero_respuesta_ws1(get_date_time() + "." + SUBDOMAIN + ".ws1.json", resp_data)
             if codigo == 0: # éxito en la 1era llamada
                 # 
                 print( 'Waiting 10 seconds before the first call to the 2nd web service...')
@@ -111,7 +111,7 @@ def main():
                         codigo=y["codigo"]
                         mensaje=y["mensaje"]
                         print("codigo: " + str(codigo) + ", mensaje: " + str(mensaje))
-                        guarda_fichero(get_date_time() + "." + SUBDOMAIN + ".ws2.log", str(resp_data) )
+                        guarda_fichero_respuesta_ws2(get_date_time() + "." + SUBDOMAIN + ".ws2.json", resp_data )
                         if codigo == 0: # éxito de la 2nda llamada
                             procesaJsonEstudiantes(y, alumnos_sigad)
                             break
@@ -142,11 +142,6 @@ def main():
                 matricula_alumno_en_cohorte_alumnado(moodle, alumnoMoodle['userid'] )
                 num_alumnos_reactivados = num_alumnos_reactivados + 1
                 break
-
-    ########################
-    # Píe de emails
-    ########################
-    pie_email_rrss = "<br><br><a href=\"https://www.instagram.com/campusdigitalfp/\" target=\"_blank\" ><img src=\"https://campusdigitalfp.com/wp-content/uploads/2023/11/logo-ig.png\" alt=\"instagram\" width=\"36\" height=\"36\"></a>&nbsp;<a href=\"https://www.linkedin.com/company/campusdigitalfp/\" target=\"_blank\"><img src=\"https://campusdigitalfp.com/wp-content/uploads/2023/11/logo-lk.png\" alt="" width=\"36\" height=\"36\"></a>&nbsp;<a href=\"https://twitter.com/CampusDigitalFP\" target=\"_blank\"><img src=\"https://campusdigitalfp.com/wp-content/uploads/2023/11/logo-x.png\" alt=\"logo x\" width=\"36\" height=\"36\"></a>&nbsp;<a href=\"https://www.youtube.com/@CampusDigitalFP\" target=\"_blank\"><img src=\"https://campusdigitalfp.com/wp-content/uploads/2024/06/logo-yt.png\" alt=\"youtube logo\" width=\"36\" height=\"36\"></a>"
     
     ########################
     # Localizo los alumnos (los profesores no) que estén en moodle y no en SIGAD (en base a su dni/nie/...)
@@ -232,8 +227,7 @@ def main():
                 mensaje = plantilla.format(
                     subdomain = SUBDOMAIN, 
                     usuario = usuario, 
-                    oldUsuario = oldUsuario, 
-                    pie_email_rrss = pie_email_rrss,
+                    oldUsuario = oldUsuario,
                 )
                 
                 destinatario = "gestion@fpvirtualaragon.es"
@@ -387,7 +381,7 @@ def main():
     #
     csv.append("First Name [Required],Last Name [Required],Email Address [Required],Password [Required],Password Hash Function [UPLOAD ONLY],Org Unit Path [Required],New Primary Email [UPLOAD ONLY],Recovery Email,Work Secondary Email,New Status [UPLOAD ONLY]")
     for alumno in alumnos_sigad:
-        if num_emails_enviados >= 1500: # limitacion de 2.000 emails diarios en actual cuenta de gmail
+        if num_emails_enviados >= 3: # limitacion de 2.000 emails diarios en actual cuenta de gmail
             # TODO: seguimos teniendo esta limitación en cuenta de pago?
             mensajes_email.append("<br/>")
             mensajes_email.append(" ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
@@ -490,7 +484,6 @@ def main():
                 usuario=alumno.getDocumento().lower(),
                 contrasena=password,
                 matriculado_en_texto=matriculado_en_texto,
-                pie_email_rrss=pie_email_rrss,
                 email=alumno.getEmailDominio(),
             )
             
@@ -523,8 +516,7 @@ def main():
                     nombre = nombre, 
                     apellidos = apellidos, 
                     subdomain = SUBDOMAIN, 
-                    matriculado_en_texto = matriculado_en_texto, 
-                    pie_email_rrss = pie_email_rrss,
+                    matriculado_en_texto = matriculado_en_texto,
                 )
 
                 destinatario = "gestion@fpvirtualaragon.es"
@@ -593,7 +585,6 @@ def main():
     mensajes_email.append("- Cantidad de matriculas no hechas por no existir el curso destino: " + str(num_alumnos_no_matriculados_en_cursos_inexistentes) )
     mensajes_email.append("- Cantidad de emails enviados: " + str(num_emails_enviados) )
     mensajes_email.append("- Cantidad de emails NO enviados: " + str(num_emails_no_enviados) )
-    mensajes_email.append( pie_email_rrss )
     ########################
     # Envío email resumen de lo hecho por email a responsables
     ########################
@@ -607,7 +598,7 @@ def main():
     print("Comenzamos con el fichero")
     filename = get_date_time_for_filename()
     print("filename: " + filename)
-    full_filename = "/var/fp-distancia-gestion-usuarios-automatica/logs/" + filename + SUBDOMAIN + ".html"
+    full_filename = "/var/fp-distancia-gestion-usuarios-automatica/logs/" + SUBDOMAIN + "/html/" + filename + SUBDOMAIN + ".html"
     print("full_filename: " + full_filename)
     fichero = open(full_filename, "x")
     print("fichero HTML abierto")
@@ -1045,17 +1036,28 @@ def abre_fichero(nombre_fichero):
     """
     print("abre_fichero(" + nombre_fichero + ")")
     # open the file nombre_fichero and return its contents
-    with open(PATH + "/logs/" + nombre_fichero, "r") as f:
+    with open(PATH + "logs/" + nombre_fichero, "r") as f:
         return f.read()
 
-def guarda_fichero(nombre_fichero, contenido):
+def guarda_fichero_respuesta_ws1(nombre_fichero, contenido):
     """
     Guarda en disco duro, en la carpeta logs un fichero con el nombre indicado en parámetro y el contenido dado
     """
-    print("guarda_fichero(...)")
-    text_file = open(PATH + "/logs/" + nombre_fichero, "w")
-    n = text_file.write(contenido)
-    text_file.close()
+    print("guarda_fichero_respuesta_ws1(...)")
+    data = json.loads(contenido.decode("utf-8"))
+    with open(PATH + "logs/" + SUBDOMAIN + "/json/" + nombre_fichero, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def guarda_fichero_respuesta_ws2(nombre_fichero, contenido):
+    """
+    Guarda en disco duro, en la carpeta logs un fichero con el nombre indicado en parámetro y el contenido dado
+    """
+    print("guarda_fichero_respuesta(...)")
+    data = json.loads(contenido.decode("utf-8"))
+    data["estudiantes"] = json.loads(data["estudiantes"])
+    with open(PATH + "logs/" + SUBDOMAIN + "/json/" + nombre_fichero, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
 
 def get_moodle(subdomain):
     """

@@ -25,14 +25,20 @@ from email import encoders
 from pathlib import Path
 import re
 
+filename_md = "";
+filename_csv = "";
+
+
 def main():
+    global filename_md
+    global filename_csv
 
     # Preparo el fichero log para escribir en él.
     print("Comenzamos con el fichero")
     datetimeForFilename = get_date_time_for_filename()
     print("filename: " + datetimeForFilename)
     filename_md = "/var/fp-distancia-gestion-usuarios-automatica/logs/" + SUBDOMAIN + "/html/" + datetimeForFilename + SUBDOMAIN + ".md"
-    print("filename_html: " + filename_md)
+    print("filename_md: " + filename_md)
 
     ## Preparao el fichero csv para escribir en él.
     filename_csv = "/var/fp-distancia-gestion-usuarios-automatica/csvs/" + datetimeForFilename + SUBDOMAIN + ".csv"
@@ -222,8 +228,8 @@ def main():
                 plantilla = plantilla_path.read_text(encoding="utf-8")
 
                 mensaje = plantilla.format(
-                    subdomain = SUBDOMAIN, 
-                    usuario = usuario, 
+                    subdomain = SUBDOMAIN,
+                    usuario = usuario,
                     oldUsuario = oldUsuario,
                 )
                 
@@ -372,12 +378,19 @@ def main():
     #
     escribeEnFichero(filename_csv, "First Name [Required],Last Name [Required],Email Address [Required],Password [Required],Password Hash Function [UPLOAD ONLY],Org Unit Path [Required],New Primary Email [UPLOAD ONLY],Recovery Email,Work Secondary Email,New Status [UPLOAD ONLY]")
     for alumno in alumnos_sigad:
-        if num_emails_enviados >= 1000: # limitacion de 2.000 emails diarios en actual cuenta de gmail
-            # TODO: seguimos teniendo esta limitación en cuenta de pago?
+
+        if SUBDOMAIN == "www" and num_emails_enviados >= 1000: # limitacion de 2.000 emails diarios en actual cuenta de gmail
             escribeEnFichero(filename_md, "\nALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
             escribeEnFichero(filename_md, "ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
             escribeEnFichero(filename_md, "ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS\n")
-            break 
+            break
+
+        if  SUBDOMAIN != "www" and num_emails_enviados >= 10: # limitacion de 10 emails para entornos que no sean producción.:
+            escribeEnFichero(filename_md, "\nALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
+            escribeEnFichero(filename_md, "ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
+            escribeEnFichero(filename_md, "ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS\n")
+            break
+        
         print("### (" + get_date_time_for_humans() + ") Procesando alumno de fichero JSON")
         print("- ", repr(alumno) )
         id_alumno = ""
@@ -597,11 +610,10 @@ def escribeEnFichero(nombre_fichero, linea):
     """
     Escribe en el fichero indicado en nombre_fichero la linea indicada, sin sobreescribir lo que ya hubiera.
     """
-    fichero = open(nombre_fichero, "a")
-    fichero.write(linea + "\n")
-    fichero.close()
+    with open(nombre_fichero, "a", encoding="utf-8") as f:
+        f.write(linea + "\n")
 
-def eval_estudiantes_con_mas_de_1_tutorias(moodle, alumnos_sigad, filename_html):
+def eval_estudiantes_con_mas_de_1_tutorias(moodle, alumnos_sigad, filename_md):
     """
     Procesa a los estudiantes de Moodle que están matriculados en 2 o mas tutorías y verifica si en el 
     fichero de JSON original también están en 2 o mas ciclos
@@ -612,10 +624,10 @@ def eval_estudiantes_con_mas_de_1_tutorias(moodle, alumnos_sigad, filename_html)
     # Aquellos estudiantes que tengan 2 o mas tutorías los busco en los datos que han llegado de 
     # SIGAD y compruebo si están dónde deberían estar o no y los mantengo en la cohorte o no
     print("Estudiantes con 2 tutorías o mas")
-    escribeEnFichero(filename_html,  get_date_time_for_humans() + "##### Alumnos con mas de 1 tutoría:\n")
+    escribeEnFichero(filename_md,  get_date_time_for_humans() + "##### Alumnos con mas de 1 tutoría:\n")
     for estudianteMoodle in estudiantes:
         print("- Evaluando estudiante: ", estudianteMoodle)
-        escribeEnFichero(filename_html, "- Evaluando a: " + estudianteMoodle['username'])
+        escribeEnFichero(filename_md, "- Evaluando a: " + estudianteMoodle['username'])
         encontrado = False
         for alumno_sigad in alumnos_sigad:
             # print("alumno_sigad.getDocumento()", alumno_sigad.getDocumento())
@@ -649,21 +661,21 @@ def eval_estudiantes_con_mas_de_1_tutorias(moodle, alumnos_sigad, filename_html)
                     # Si no está matriculado en ese centro y ciclo, lo desmatriculo de esa tutoria
                     if not le_correspone_la_tutoria:
                         print("No está matriculado en ese centro (",codCentro,") y ciclo(",codCiclo,"). Borrando matrícula de esa tutoría vía eliminación del estddiante de la cohorte.")
-                        escribeEnFichero(filename_html, "No está matriculado en ese centro ("+codCentro+") y ciclo ("+codCiclo+"). Borrando matrícula de esa tutoría vía eliminación del estddiante de la cohorte.")
+                        escribeEnFichero(filename_md, "No está matriculado en ese centro ("+codCentro+") y ciclo ("+codCiclo+"). Borrando matrícula de esa tutoría vía eliminación del estddiante de la cohorte.")
                         cohort_id = get_cohort_id(moodle, codCentro+"-"+codCiclo)
                         borra_alumno_de_cohorte(moodle, cohort_id, estudianteMoodle['userid'])
                         num_tutorias_suspendidas += 1
                         print("borrado estudiante de cohorte: " + codCentro+"-"+codCiclo + "(" + str(cohort_id) + ")")
-                        escribeEnFichero(filename_html, "borrado estudiante de cohorte: " + codCentro+"-"+codCiclo + "(" + str(cohort_id) + ")")
+                        escribeEnFichero(filename_md, "borrado estudiante de cohorte: " + codCentro+"-"+codCiclo + "(" + str(cohort_id) + ")")
                     else:
                         print("Está matriculado correctamente en esa tutoría ",codCentro, codCiclo, ". No hago nada")
-                        escribeEnFichero(filename_html, "Está matriculado correctamente en esa tutoría ("+codCentro+"-"+codCiclo+"). No hago nada")
+                        escribeEnFichero(filename_md, "Está matriculado correctamente en esa tutoría ("+codCentro+"-"+codCiclo+"). No hago nada")
                 # 
                 encontrado = True
                 break
         if not encontrado:
             print("Estudiante NO ENCONTRADO en SIGAD")
-            escribeEnFichero(filename_html, "Estudiante NO ENCONTRADO en SIGAD")
+            escribeEnFichero(filename_md, "Estudiante NO ENCONTRADO en SIGAD")
 
     return num_tutorias_suspendidas
     # raise Exception("Fin de eval_estudiantes_con_mas_de_1_tutorias") # para testing
@@ -1682,4 +1694,17 @@ except Exception as exc:
     traceback.print_exception(*sys.exc_info())
     print("--------------------")
     print(exc)
-    send_email("gestion@fpvirtualaragon.es", "ERROR - Informe automatizado gestión automática usuarios moodle", "Ha fallado el informe, revisar logs. <br/>Error: " + str(exc) + "<br/><br/><br/>" + str(traceback.print_exc()) + "<br/><br/><br/>" + str(traceback.print_exception(*sys.exc_info())))
+
+    plantilla_path = Path("/var/fp-distancia-gestion-usuarios-automatica/templates/haFalladoElInforme.html")
+    plantilla = plantilla_path.read_text(encoding="utf-8")
+
+    mensaje = plantilla.format(
+        subdomain = SUBDOMAIN,
+        filename_md = filename_md,
+        filename_csv = filename_csv,
+        error = str(exc),
+        traceback = str(traceback.print_exc()),
+        tracebackException = str(traceback.print_exception(*sys.exc_info())),
+    )
+
+    send_email("gestion@fpvirtualaragon.es", "ERROR - Informe automatizado gestión automática usuarios moodle", mensaje)

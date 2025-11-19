@@ -45,7 +45,7 @@ def main():
     print("filename_csv: " + filename_csv)
     
     #
-    escribeEnFichero(filename_md, "# " + get_date_time_for_humans() + " Comenzamos:\n")
+    escribeEnFichero(filename_md, "# (" + get_date_time_for_humans() + ") Comenzamos:\n")
     escribeEnFichero(filename_md, "## ENTORNO:\n")
     escribeEnFichero(filename_md, SUBDOMAIN)
     escribeEnFichero(filename_md, "## RESUMEN DETALLADO\n")
@@ -138,7 +138,7 @@ def main():
     # Obtengo los alumnos (profesores no) que están suspendidos en moodle y miro si están en el fichero de SIGAD
     # Si están en el fichero de SIGAD los reactivo
     ########################
-    escribeEnFichero(filename_md, get_date_time_for_humans() + "### Estudiantes suspendidos en Moodle pero que están en el fichero de SIGAD (habria que reactivar):\n")
+    escribeEnFichero(filename_md, "### (" + get_date_time_for_humans() + ") Estudiantes suspendidos en Moodle pero que están en el fichero de SIGAD (habria que reactivar):\n")
     alumnos_suspendidos = get_alumnos_suspendidos(moodle)
     for alumnoMoodle in alumnos_suspendidos:
         # comprobamos si existe por dni/nie/...
@@ -157,7 +157,7 @@ def main():
     # también aprovecho para actualizar emails se procede
     ########################
     print("### Localizo los alumnos que estén en moodle y no en SIGAD y también aprovecho para actualizar emails se procede:")
-    escribeEnFichero(filename_md, get_date_time_for_humans() + "### Alumnos a los que estando en SIGAD y Moodle se les ha actualizado el email:\n")
+    escribeEnFichero(filename_md, "### (" + get_date_time_for_humans() + ")Alumnos a los que estando en SIGAD y Moodle se les ha actualizado el email:\n")
     alumnos_en_moodle_pero_no_SIGAD = [  ]
     for alumnoMoodle in alumnos_moodle:
         existe = False
@@ -254,7 +254,7 @@ def main():
 
     
     print("### Alumnos a suspender totalmente de Moodle")
-    escribeEnFichero(filename_md,  get_date_time_for_humans() + " ##### Estudiantes a suspender totalmente de Moodle al no estar en SIGAD, 1ero matrículas y 2ndo a ellos:\n")
+    escribeEnFichero(filename_md, " ##### (" + get_date_time_for_humans() + ") Estudiantes a suspender totalmente de Moodle al no estar en SIGAD, 1ero matrículas y 2ndo a ellos:\n")
     for alumnoMoodle in alumnos_a_suspender:
         print("- ", repr(alumnoMoodle) )
         if int(alumnoMoodle['userid']) not in usuarios_moodle_no_borrables:
@@ -290,9 +290,9 @@ def main():
     ########################
     alumnos_moodle = get_alumnos_moodle_no_borrados(moodle) 
     cursos_moodle = get_cursos(moodle)
-    escribeEnFichero(filename_md,  get_date_time_for_humans() + " ##### Alumnos a los que se ha suspendido su matrícula en algún curso pero no a ellos:\n")
+    escribeEnFichero(filename_md, " ##### (" + get_date_time_for_humans() + ") Alumnos a los que se ha suspendido su matrícula en algún curso pero no a ellos:\n")
     for alumno_moodle in alumnos_moodle:
-        print(get_date_time_for_humans() + "### Procesando alumno de Moodle")
+        print("### (" + get_date_time_for_humans() + ") Procesando alumno de Moodle")
         print("- ", alumno_moodle['username'] )
         userid = alumno_moodle['userid']
         # no recorro los no borrables
@@ -624,7 +624,7 @@ def eval_estudiantes_con_mas_de_1_tutorias(moodle, alumnos_sigad, filename_md):
     # Aquellos estudiantes que tengan 2 o mas tutorías los busco en los datos que han llegado de 
     # SIGAD y compruebo si están dónde deberían estar o no y los mantengo en la cohorte o no
     print("Estudiantes con 2 tutorías o mas")
-    escribeEnFichero(filename_md,  get_date_time_for_humans() + "##### Alumnos con mas de 1 tutoría:\n")
+    escribeEnFichero(filename_md, "##### (" + get_date_time_for_humans() + ")Alumnos con mas de 1 tutoría:\n")
     for estudianteMoodle in estudiantes:
         print("- Evaluando estudiante: ", estudianteMoodle)
         escribeEnFichero(filename_md, "- Evaluando a: " + estudianteMoodle['username'])

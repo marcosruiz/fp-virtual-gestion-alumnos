@@ -1311,12 +1311,12 @@ def send_email_con_adjuntos(destinatario, asunto, html, filenames):
     password = SMTP_PASSWORD
 
     # Crear mensaje
-    message = MIMEMultipart("alternative")
+    message = MIMEMultipart()
     message["From"] = sender_email
     message["To"] = receiver_email
     message["Subject"] = asunto
 
-    message.set_content("Tu cliente no soporta HTML.")   # parte de texto plano
+    message.attach(MIMEText("Tu cliente no soporta HTML.", "plain"))   # parte de texto plano
     message.add_alternative(html, subtype='html')        # parte HTML
 
     # Adjuntar cada fichero

@@ -28,7 +28,6 @@ import re
 filename_md = "";
 filename_csv = "";
 
-
 def main():
 
     # Preparo el fichero log para escribir en él.
@@ -1274,7 +1273,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 import smtplib, ssl
 
-def send_email_con_adjuntos(destinatario, asunto, filenames):
+def send_email_con_adjuntos(destinatario, asunto, html, filenames):
     """
     Envía un correo con uno o varios ficheros adjuntos.
     - destinatario: dirección del receptor
@@ -1295,6 +1294,9 @@ def send_email_con_adjuntos(destinatario, asunto, filenames):
     message["From"] = sender_email
     message["To"] = receiver_email
     message["Subject"] = asunto
+
+    message.set_content("Tu cliente no soporta HTML.")   # parte de texto plano
+    message.add_alternative(html, subtype='html')        # parte HTML
 
     # Adjuntar cada fichero
     for filename in filenames:
@@ -1707,4 +1709,5 @@ except Exception as exc:
         tracebackException = str(traceback.print_exception(*sys.exc_info())),
     )
 
-    send_email("gestion@fpvirtualaragon.es", "ERROR - Informe automatizado gestión automática usuarios moodle", mensaje)
+    send_email_con_adjuntos("gestion@fpvirtualaragon.es", "ERROR - Informe automatizado gestión automática usuarios moodle", mensaje, [filename_md, filename_csv] )
+

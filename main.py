@@ -44,10 +44,11 @@ def main():
     print("filename_csv: " + filename_csv)
     
     #
-    escribeEnFichero(filename_md, "# (" + get_date_time_for_humans() + ") Comenzamos:\n")
-    escribeEnFichero(filename_md, "## ENTORNO:\n")
+    escribeEnFichero(filename_md, "# Informe de gestion alumnos\n")
+    escribeEnFichero(filename_md, get_date_time_for_humans())
+    escribeEnFichero(filename_md, "\n## ENTORNO\n")
     escribeEnFichero(filename_md, SUBDOMAIN)
-    escribeEnFichero(filename_md, "## RESUMEN DETALLADO\n")
+    escribeEnFichero(filename_md, "\n## RESUMEN DETALLADO\n")
     # ids de users creados en deploy que no hay que borrar
     usuarios_moodle_no_borrables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 3725, 3729, 3730, 7152, 7490, 7491, 11720, 12270, 12272]
     # 
@@ -137,7 +138,10 @@ def main():
     # Obtengo los alumnos (profesores no) que están suspendidos en moodle y miro si están en el fichero de SIGAD
     # Si están en el fichero de SIGAD los reactivo
     ########################
-    escribeEnFichero(filename_md, "### (" + get_date_time_for_humans() + ") Estudiantes suspendidos en Moodle pero que están en el fichero de SIGAD (habria que reactivar):\n")
+    escribeEnFichero(filename_md, "\n### Estudiantes suspendidos en Moodle pero que están en el fichero de SIGAD (habria que reactivar):\n")
+    
+    escribeEnFichero(filename_md, get_date_time_for_humans())
+    
     alumnos_suspendidos = get_alumnos_suspendidos(moodle)
     for alumnoMoodle in alumnos_suspendidos:
         # comprobamos si existe por dni/nie/...
@@ -155,8 +159,9 @@ def main():
     # Localizo los alumnos (los profesores no) que estén en moodle y no en SIGAD (en base a su dni/nie/...)
     # también aprovecho para actualizar emails se procede
     ########################
-    print("### Localizo los alumnos que estén en moodle y no en SIGAD y también aprovecho para actualizar emails se procede:")
-    escribeEnFichero(filename_md, "### (" + get_date_time_for_humans() + ")Alumnos a los que estando en SIGAD y Moodle se les ha actualizado el email:\n")
+    print("## Localizo los alumnos que estén en moodle y no en SIGAD y también aprovecho para actualizar emails se procede:")
+    escribeEnFichero(filename_md, "\n### Alumnos a los que estando en SIGAD y Moodle se les ha actualizado el email:\n")
+    escribeEnFichero(filename_md, get_date_time_for_humans() + "\n")
     alumnos_en_moodle_pero_no_SIGAD = [  ]
     for alumnoMoodle in alumnos_moodle:
         existe = False
@@ -184,7 +189,7 @@ def main():
         if not existe:
             alumnos_en_moodle_pero_no_SIGAD.append(alumnoMoodle)
             
-    print("### Alumnos que estan en moodle y no en SIGAD:")
+    print("## Alumnos que estan en moodle y no en SIGAD")
     escribeEnFichero(filename_md, "### (" + get_date_time_for_humans() + ") Alumnos que estan en moodle y no en SIGAD:\n")
     for alumnoMoodle in alumnos_en_moodle_pero_no_SIGAD:
         print("alumnoMoodle: ", alumnoMoodle)
@@ -196,8 +201,9 @@ def main():
     # TODO: Utilizar este bucle como ejemplo para las que su nombre ha cambiado
     # - si no hay nadie con ese email considero que es una baja y lo suspendo
     ########################
-    print("### Alumnos que habría que actualizar su id:")
-    escribeEnFichero(filename_md, "##### (" + get_date_time_for_humans() + ") Alumnos a los que se ha actualizado su login:\n")
+    print("## Alumnos que habría que actualizar su id:")
+    escribeEnFichero(filename_md, "\n### Alumnos a los que se ha actualizado su login\n")
+    escribeEnFichero(filename_md, get_date_time_for_humans() + "\n")
     alumnos_a_suspender = [ ] # los que no haya que actualizar son para suspender, irán aquí
     for alumnoMoodle in alumnos_en_moodle_pero_no_SIGAD:
         existe = False
@@ -210,7 +216,7 @@ def main():
                     and es_dni_valido(alumnoSIGAD.getDocumento()) \
                     and alumnoMoodle['email_sigad'].lower() == alumnoSIGAD.getEmailSigad().lower(): 
                 existe = True
-                print("- Alumno a actualizar su login por coincidencia de email: '", repr(alumnoMoodle),"'", sep="" )
+                print("Alumno a actualizar su login por coincidencia de email: '", repr(alumnoMoodle),"'", sep="" )
                 print("habría que ponerle de login '", alumnoSIGAD.getDocumento(),"'", sep="" )
                 userid = alumnoMoodle['userid']
                 username_nuevo = alumnoSIGAD.getDocumento().lower().strip()
@@ -252,8 +258,9 @@ def main():
             alumnos_a_suspender.append(alumnoMoodle)
 
     
-    print("### Alumnos a suspender totalmente de Moodle")
-    escribeEnFichero(filename_md, "##### (" + get_date_time_for_humans() + ") Estudiantes a suspender totalmente de Moodle al no estar en SIGAD, 1ero matrículas y 2ndo a ellos:\n")
+    print("## Alumnos a suspender totalmente de Moodle")
+    escribeEnFichero(filename_md, "\n### Estudiantes a suspender totalmente de Moodle al no estar en SIGAD, 1ero matrículas y 2ndo a ellos:\n")
+    escribeEnFichero(filename_md, get_date_time_for_humans() + "\n")
     for alumnoMoodle in alumnos_a_suspender:
         print("- ", repr(alumnoMoodle) )
         if int(alumnoMoodle['userid']) not in usuarios_moodle_no_borrables:
@@ -289,9 +296,11 @@ def main():
     ########################
     alumnos_moodle = get_alumnos_moodle_no_borrados(moodle) 
     cursos_moodle = get_cursos(moodle)
-    escribeEnFichero(filename_md, " ##### (" + get_date_time_for_humans() + ") Alumnos a los que se ha suspendido su matrícula en algún curso pero no a ellos:\n")
+    escribeEnFichero(filename_md, "\n### Alumnos a los que se ha suspendido su matrícula en algún curso pero no a ellos:\n")
+    escribeEnFichero(filename_md, get_date_time_for_humans() + "\n")
     for alumno_moodle in alumnos_moodle:
-        print("### (" + get_date_time_for_humans() + ") Procesando alumno de Moodle")
+        print("## Procesando alumno de Moodle")
+        print(get_date_time_for_humans())
         print("- ", alumno_moodle['username'] )
         userid = alumno_moodle['userid']
         # no recorro los no borrables
@@ -300,10 +309,10 @@ def main():
         username = alumno_moodle['username']
         # Obtengo los cursos en que este alumno moodle está matriculado en moodle
         cursos_matriculado = get_cursos_en_que_esta_matriculado(moodle, userid)
-        print("- Acualmente se encuentra matriculado en ", cursos_matriculado)
+        print("  - Actualmente se encuentra matriculado en ", cursos_matriculado)
         # recorro los cursos en que el usuario de moodle está matriculado y miro si el usuario de sigad está matriculado en el curso o no
         for curso in cursos_matriculado:
-            print("- Procesando curso ", curso)
+            print("  - Procesando curso ", curso)
             courseid = curso['courseid']
             course_shortname = curso['shortname']
             course_codes = course_shortname.split("-") # 0 centreid 1 siglas ciclo 2 codigo materia
@@ -319,38 +328,38 @@ def main():
                 
                 en_sigad_esta_matriculado = False
                 if alumno.getDocumento() is not None and alumno.getDocumento().lower() == username.lower(): # he encontrado al alumno en SIGAD
-                    print("-", repr(alumno) )
-                    print("- El alumno", username, "está actualmente matriculado en moodle en el curso", course_shortname, ". Vamos a comprobar si en SIGAD también está")
+                    print("  -", repr(alumno) )
+                    print("  - El alumno", username, "está actualmente matriculado en moodle en el curso", course_shortname, ". Vamos a comprobar si en SIGAD también está")
                     
                     centros = alumno.getCentros()
-                    print("*Mirando centros del alumno")
+                    print("  - Mirando centros del alumno")
                     for centro in centros:
                         if en_sigad_esta_matriculado:
                             break
                         if course_codes[0] == centro.get_codigo_centro(): #sigo profundizando
                             ciclos = centro.getCiclos()
-                            print("## Mirando ciclos del alumno")
+                            print("  - Mirando ciclos del alumno")
                             for ciclo in ciclos:
                                 if en_sigad_esta_matriculado:
                                     break;
                                 if course_codes[1] == ciclo.get_siglas_ciclo(): #sigo profundizando
                                     modulos = ciclo.getModulos()
-                                    print("### Mirando módulos del alumno")
+                                    print("  - Mirando módulos del alumno")
                                     if modulos is not None:
                                         for modulo in modulos:
                                             if en_sigad_esta_matriculado:
                                                 break
                                             if int(course_codes[2]) == modulo.get_id_materia(): #he llegado al módulo
                                                 en_sigad_esta_matriculado = True
-                                                print("- En SIGAD el alumno", username, "SI está matriculado en", course_shortname, "se le mantiene matriculado en moodle")
+                                                print("  - En SIGAD el alumno", username, "SI está matriculado en", course_shortname, "se le mantiene matriculado en moodle")
                                     else:
-                                        print("### No está en ningún módulo")
+                                        print("  - No está en ningún módulo")
                                 else:
                                     continue;
                         else:
                             continue
                     if not en_sigad_esta_matriculado:
-                        print("- En SIGAD el alumno", username, "NO está matriculado en", course_shortname, "se procede a suspender su matrícula en el curso de moodle")
+                        print("  - En SIGAD el alumno", username, "NO está matriculado en", course_shortname, "se procede a suspender su matrícula en el curso de moodle")
 
                         # Casos especiales de fusión de cursos de Maite
                         # TODO Borrar el if para antes de empezar el curso 2026-2027
@@ -369,7 +378,8 @@ def main():
     # - si un alumno del fichero no existe en moodle lo creo
     # - matriculo a un alumno en los cursos que tenga asignados en SIGAD
     ########################
-    escribeEnFichero(filename_md, "##### (" + get_date_time_for_humans() + ") Alumnos creados y matriculados:\n")
+    escribeEnFichero(filename_md, "\n### Alumnos creados y matriculados:\n")
+    escribeEnFichero(filename_md, get_date_time_for_humans() + "\n")
     usuarios_no_creables = [ ]
     # Creo diccionario de id_cursoshortname para evitar usar get_id_de_curso_by_shortname en cada iteración
     diccionario_cursos = {curso['shortname'] : curso['courseid'] for curso in cursos_moodle}
@@ -379,24 +389,25 @@ def main():
     for alumno in alumnos_sigad:
 
         if SUBDOMAIN == "www" and num_emails_enviados >= 1000: # limitacion de 2.000 emails diarios en actual cuenta de gmail
-            escribeEnFichero(filename_md, "\nALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
+            escribeEnFichero(filename_md, "\nALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS")
             escribeEnFichero(filename_md, "ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
             escribeEnFichero(filename_md, "ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS\n")
             break
 
         if  SUBDOMAIN != "www" and num_emails_enviados >= 3: # limitacion de 10 emails para entornos que no sean producción.:
-            escribeEnFichero(filename_md, "\nALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
+            escribeEnFichero(filename_md, "\nALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS")
             escribeEnFichero(filename_md, "ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS ")
             escribeEnFichero(filename_md, "ALCANZADO LÍMITE DE ENVÍO DE EMAILS DIARIOS\n")
             break
         
-        print("### (" + get_date_time_for_humans() + ") Procesando alumno de fichero JSON")
+        print("## Procesando alumno de fichero JSON")
+        print(get_date_time_for_humans())
         print("- ", repr(alumno) )
         id_alumno = ""
         alumno_es_nuevo = False
         # Creo en moodle los alumnos que estén en el json y no estén en moodle
         if not existeAlumnoEnMoodle(moodle, alumno):
-            print("- Es nuevo")
+            print("  - Es nuevo")
             password = random_pass(10)
             try:
                 # TODO: Comprobar al ir a crearlo si ya existe en moodle alguien con 
@@ -419,10 +430,10 @@ def main():
                 usuarios_no_creables.append(alumno)
                 continue
         else:
-            print("Ya existía en moodle")
+            print("  - Ya existía en moodle")
             #id_alumno = get_id_alumno_by_dni(moodle, alumno)
             id_alumno = diccionario_alumnos[ alumno.getDocumento().lower().rstrip() ]
-            print("Tenía el id_alumno:", id_alumno);
+            print("  - Tenía el id_alumno:", id_alumno);
 
         # Comprobamos que tenemos el id de alumno
         try:
@@ -440,7 +451,7 @@ def main():
                 if ciclo.getModulos() is not None:
                     for modulo in ciclo.getModulos():
                         id_materia = modulo.get_id_materia()
-                        print("Matriculando en ", id_materia )
+                        print("  - Matriculando en ", id_materia )
                         shortname_curso = crearShortnameCurso(codigo_centro, siglas_ciclo, id_materia)
                         #id_curso = get_id_de_curso_by_shortname(moodle, shortname_curso)
                         id_curso = ""
@@ -451,23 +462,23 @@ def main():
 
                         print("id_curso ", id_curso )
                         if id_curso == "": # el curso no existe
-                            print("- El curso ", str(shortname_curso) , " no existe.", sep="")
+                            print("  - El curso ", str(shortname_curso) , " no existe.", sep="")
                             escribeEnFichero(filename_md, "- Alumno "+ alumno.getDocumento()+ " NO puede matricularse en "+ shortname_curso + " por que el curso NO existe.")
                             num_alumnos_no_matriculados_en_cursos_inexistentes = num_alumnos_no_matriculados_en_cursos_inexistentes + 1
                         elif is_alumno_suspendido_en_curso(moodle, id_curso, id_alumno):
-                            print("- El alumno ", str(id_alumno) , " está suspendido en el curso ", str(shortname_curso),". Se le reactiva.", sep="")
+                            print("  - El alumno ", str(id_alumno) , " está suspendido en el curso ", str(shortname_curso),". Se le reactiva.", sep="")
                             reactiva_alumno_en_curso(moodle, id_alumno, id_curso)
                             num_matriculas_reactivadas = num_matriculas_reactivadas + 1;
                             escribeEnFichero(filename_md, "- Alumno "+ alumno.getDocumento()+ " reactivada su matricula en "+ shortname_curso + ".")
                             matriculado_en.append("- " + centro.get_centro() + " - " + ciclo.get_ciclo() + " - " + modulo.get_modulo() )
                         elif not is_alumno_matriculado_en_curso(moodle, id_alumno, id_curso):
-                            print("- El alumno ", str(id_alumno) , " NO está matriculado en el curso ", str(shortname_curso),". Se le matricula.", sep="")
+                            print("  - El alumno ", str(id_alumno) , " NO está matriculado en el curso ", str(shortname_curso),". Se le matricula.", sep="")
                             matricula_alumno_en_curso(moodle, id_alumno, id_curso)
                             num_modulos_matriculados = num_modulos_matriculados + 1
                             escribeEnFichero(filename_md, "- Alumno "+ alumno.getDocumento()+ " matriculado en "+ shortname_curso + ".")
                             matriculado_en.append("- " + centro.get_centro() + " - " + ciclo.get_ciclo() + " - " + modulo.get_modulo() )
                         else:
-                            print("- El alumno (",id_alumno,") ya estaba matriculado en ", shortname_curso, sep="")
+                            print("  - El alumno (",id_alumno,") ya estaba matriculado en ", shortname_curso, sep="")
         # envío email
         if alumno_es_nuevo:
             time.sleep(2) # para no saturar el envío de emails
@@ -541,7 +552,7 @@ def main():
     
     # Listo alumnos que no se han podido crear
     escribeEnFichero(filename_md, "##### (" + get_date_time_for_humans() + ") Alumnos que no se han podido crear:\n")
-    print("Alumnos de SIGAD que no se han podido crear en Moodle: ")
+    print("## Alumnos de SIGAD que no se han podido crear en Moodle")
     for alumno in usuarios_no_creables:
         print( "- ", repr(alumno) )
         escribeEnFichero(filename_md, "- " + repr(alumno) )
@@ -566,7 +577,7 @@ def main():
     escribeEnFichero(filename_md, "\n--------------------------------------------------------------------------")
     escribeEnFichero(filename_md, "--------------------------------------------------------------------------")
     escribeEnFichero(filename_md, "--------------------------------------------------------------------------\n")
-    escribeEnFichero(filename_md, "## RESUMEN de acciones llevadas a cabo por este script:\n")
+    escribeEnFichero(filename_md, "\n## RESUMEN de acciones llevadas a cabo por este script:\n")
     escribeEnFichero(filename_md, "- Alumnos existentes en moodle antes de ejecutar este programa: " + str(num_alumnos_pre_app) )
     num_alumnos_post_script = len( get_alumnos_moodle_no_borrados(moodle) )
     escribeEnFichero(filename_md, "- Alumnos existentes en moodle despues de ejecutar este programa: " + str(num_alumnos_post_script) )
@@ -589,9 +600,19 @@ def main():
     ########################
     time.sleep(5)
     print("Printed after 5 seconds.")
+
+    plantilla_path = Path("/var/fp-distancia-gestion-usuarios-automatica/templates/informeAutomatizado.html")
+    plantilla = plantilla_path.read_text(encoding="utf-8")
+
+    mensaje = plantilla.format(
+        subdomain = SUBDOMAIN,
+        filename_md = filename_md,
+        filename_csv = filename_csv
+    )
+
     emails = REPORT_TO.split()
     for email in emails:
-        send_email_con_adjuntos(email, "Informe automatizado gestión automática usuarios moodle", [filename_md, filename_csv] )
+        send_email_con_adjuntos(email, "Informe automatizado gestión automática usuarios moodle", mensaje, [filename_md, filename_csv] )
 
     #
     # End of main 
@@ -660,21 +681,21 @@ def eval_estudiantes_con_mas_de_1_tutorias(moodle, alumnos_sigad, filename_md):
                     # Si no está matriculado en ese centro y ciclo, lo desmatriculo de esa tutoria
                     if not le_correspone_la_tutoria:
                         print("No está matriculado en ese centro (",codCentro,") y ciclo(",codCiclo,"). Borrando matrícula de esa tutoría vía eliminación del estddiante de la cohorte.")
-                        escribeEnFichero(filename_md, "No está matriculado en ese centro ("+codCentro+") y ciclo ("+codCiclo+"). Borrando matrícula de esa tutoría vía eliminación del estddiante de la cohorte.")
+                        escribeEnFichero(filename_md, "  - No está matriculado en ese centro ("+codCentro+") y ciclo ("+codCiclo+"). Borrando matrícula de esa tutoría vía eliminación del estddiante de la cohorte.")
                         cohort_id = get_cohort_id(moodle, codCentro+"-"+codCiclo)
                         borra_alumno_de_cohorte(moodle, cohort_id, estudianteMoodle['userid'])
                         num_tutorias_suspendidas += 1
                         print("borrado estudiante de cohorte: " + codCentro+"-"+codCiclo + "(" + str(cohort_id) + ")")
-                        escribeEnFichero(filename_md, "borrado estudiante de cohorte: " + codCentro+"-"+codCiclo + "(" + str(cohort_id) + ")")
+                        escribeEnFichero(filename_md, "  - Borrado estudiante de cohorte: " + codCentro+"-"+codCiclo + "(" + str(cohort_id) + ")")
                     else:
                         print("Está matriculado correctamente en esa tutoría ",codCentro, codCiclo, ". No hago nada")
-                        escribeEnFichero(filename_md, "Está matriculado correctamente en esa tutoría ("+codCentro+"-"+codCiclo+"). No hago nada")
+                        escribeEnFichero(filename_md, "  - Está matriculado correctamente en esa tutoría ("+codCentro+"-"+codCiclo+"). No hago nada")
                 # 
                 encontrado = True
                 break
         if not encontrado:
             print("Estudiante NO ENCONTRADO en SIGAD")
-            escribeEnFichero(filename_md, "Estudiante NO ENCONTRADO en SIGAD")
+            escribeEnFichero(filename_md, "  - Estudiante NO ENCONTRADO en SIGAD")
 
     return num_tutorias_suspendidas
     # raise Exception("Fin de eval_estudiantes_con_mas_de_1_tutorias") # para testing
@@ -1709,5 +1730,6 @@ except Exception as exc:
         tracebackException = str(traceback.print_exception(*sys.exc_info())),
     )
 
-    send_email_con_adjuntos("gestion@fpvirtualaragon.es", "ERROR - Informe automatizado gestión automática usuarios moodle", mensaje, [filename_md, filename_csv] )
-
+    emails = REPORT_TO.split()
+    for email in emails:
+        send_email_con_adjuntos("gestion@fpvirtualaragon.es", "ERROR - Informe automatizado gestión automática usuarios moodle", mensaje, [filename_md, filename_csv] )

@@ -122,8 +122,8 @@ def main():
                         codigo=y["codigo"]
                         mensaje=y["mensaje"]
                         print("codigo: " + str(codigo) + ", mensaje: " + str(mensaje))
-                        guarda_fichero_respuesta_ws2(get_date_time() + "." + SUBDOMAIN + ".ws2.json", resp_data )
                         if codigo == 0: # éxito de la 2nda llamada
+                            guarda_fichero_respuesta_ws2(get_date_time() + "." + SUBDOMAIN + ".ws2.json", resp_data )
                             procesaJsonEstudiantes(y, alumnos_sigad)
                             break
                         else: # Error  en la 2ª llamada
